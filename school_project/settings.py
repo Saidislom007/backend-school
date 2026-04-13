@@ -116,9 +116,10 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Bu yer to'g'ri
 
+# WhiteNoise uchun bu qatorni qo'shing (agar yo'q bo'lsa)
+WHITENOISE_USE_FINDERS = True
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -163,19 +164,3 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
-
-# settings.py faylining eng oxiriga qo'shing
-import sys
-if os.environ.get('CREATE_SUPERUSER') == 'True':
-    try:
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        if not User.objects.filter(username='admin').exists():
-            User.objects.create_superuser(
-                username='admin',
-                email='admin@example.com',
-                password='Admin123456!'
-            )
-            print("✅ Superuser created successfully!")
-    except Exception as e:
-        print(f"⚠️ Superuser creation failed: {e}")
