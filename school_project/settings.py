@@ -127,15 +127,19 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS settings - Production uchun xavfsizroq sozlamalar
+# settings.py ichidagi CORS qismi
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
     CORS_ALLOWED_ORIGINS = [
-        'https://*.onrender.com',
-        os.environ.get('FRONTEND_URL', ''),
+        "https://*.railway.app",  # Railway domenlari uchun
     ]
+    
+    frontend_url = os.environ.get('FRONTEND_URL')
+    if frontend_url:
+        CORS_ALLOWED_ORIGINS.append(frontend_url)
+    
     CORS_ALLOW_CREDENTIALS = True
-
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
