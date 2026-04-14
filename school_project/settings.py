@@ -17,12 +17,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-change-this')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+# Railway'da domen nomini avtomatik olish uchun
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    '.railway.app',  # Railway subdomenlari uchun
-    os.environ.get('RENDER_EXTERNAL_HOSTNAME', ''), # Render uchun (agar kerak bo'lsa)
+    '.railway.app',  # Railway barcha subdomenlari uchun
 ]
+railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
+if railway_domain:
+    ALLOWED_HOSTS.append(railway_domain)
 
 # Application definition
 INSTALLED_APPS = [
@@ -31,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', 
+    'whitenoise.runserver_nostatic', # Static fayllar uchun
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
@@ -39,10 +42,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise har doim Security'dan keyin
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # CORS yuqoriroqda bo'lishi kerak
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -70,8 +73,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'school_project.wsgi.application'
 
-# Database
-# Railway avtomatik DATABASE_URL beradi, lokalda SQLite ishlatiladi
+# Database - PostgreSQL (Railway uchun)
+# Lokal uchun SQLite ishlatadi, Railway'da esa DATABASE_URL dan oladi
 DATABASES = {
     'default': dj_database_url.config(
         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
@@ -97,11 +100,17 @@ USE_TZ = True
 # Static & Media files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise sozlamalari
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_MANIFEST_STRICT = False # Papka bo'sh bo'lsa xato bermasligi uchun
+WHITENOISE_MANIFEST_STRICT = False 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Statik papka bo'lmasa xato bermasligi uchun avtomatik yaratish
+if not os.path.exists(STATIC_ROOT):
+    os.makedirs(STATIC_ROOT)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -114,7 +123,6 @@ else:
     ]
     frontend_url = os.environ.get('FRONTEND_URL')
     if frontend_url:
-        # Scheme (https://) borligini tekshirish (Logdagi xatoni oldini oladi)
         if not frontend_url.startswith("http"):
             frontend_url = f"https://{frontend_url}"
         CORS_ALLOWED_ORIGINS.append(frontend_url)
@@ -130,12 +138,13 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
 
 # Production Security
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # Railway uchun muhim
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
