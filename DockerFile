@@ -1,32 +1,23 @@
-# Python 3.11 obrazini tanlaymiz
 FROM python:3.11-slim
 
-# Muhit o'zgaruvchilari
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-# Railway uchun port (Railway avtomat PORT o'zgaruvchisini beradi)
 ENV PORT 8080
 
 WORKDIR /app
 
-# Tizim paketlarini o'rnatish
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
     --no-install-recommends && \
     rm -rf /var/lib/apt/lists/*
 
-# Bog'liqliklarni o'rnatish
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Loyihani nusxalash
 COPY . /app/
 
-# Statik fayllarni yig'ish (Build vaqtida bazaga ulanmasligi uchun dummy SECRET_KEY)
-RUN DJANGO_SECRET_KEY=dummy_key_for_collectstatic \
-    python manage.py collectstatic --noinput
+# MANA SHU QATOR STATIK FAYLLARNI DOIMIY QILADI
+RUN DJANGO_SECRET_KEY=dummy_key python manage.py collectstatic --noinput
 
-# Migratsiya va Serverni ishga tushirish (Superuser qismi olib tashlandi)
-CMD python manage.py migrate && \
-    gunicorn school_project.wsgi:application --bind 0.0.0.0:${PORT}
+CMD python manage.py migrate && gunicorn school_project.wsgi:application --bind 0.0.0.0:${PORT}

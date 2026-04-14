@@ -93,16 +93,15 @@ TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-# Static & Media files
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Statik fayllar uchun qo'shimcha papkalar bo'lsa
 STATICFILES_DIRS = [
-    # BASE_DIR / "static", # Agar asosiy static papkangiz bo'lsa buni oching
+    BASE_DIR / "static", # Agar asosiy static papkangiz bo'lsa buni oching
 ]
 
-# WhiteNoise sozlamalari - Statik fayllarni siqish va keshdan o'qish uchun
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -111,7 +110,6 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-
 WHITENOISE_MANIFEST_STRICT = False
 
 WHITENOISE_USE_FINDERS = True
