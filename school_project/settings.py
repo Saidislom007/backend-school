@@ -1,37 +1,26 @@
-"""
-Django settings for school_project project - Final Production version for Railway
-"""
-
 import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# .env faylini yuklash
 load_dotenv()
 
-# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-key-123')
-# Railway'da DEBUG har doim False bo'lishi kerak
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-123')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# Railway domenlarini sozlash
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app']
-railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
-if railway_domain:
-    ALLOWED_HOSTS.append(railway_domain)
+# Railway uchun barcha ruxsatlar
+ALLOWED_HOSTS = ['*', '.railway.app', 'localhost', '127.0.0.1']
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', # Statik fayllar uchun
+    'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
@@ -40,7 +29,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', # SecurityMiddleware dan keyin tursin
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Statik fayllar uchun
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
@@ -70,7 +59,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'school_project.wsgi.application'
 
-# Database - Faqat PostgreSQL
+# DATABASE (Postgres)
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', ''),
@@ -79,83 +68,60 @@ DATABASES = {
     )
 }
 
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-# Internationalization
-LANGUAGE_CODE = 'uz'
-TIME_ZONE = 'Asia/Tashkent'
-USE_I18N = True
-USE_TZ = True
-
-
-
-
+# STATIC & MEDIA
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [] # Bo'sh bo'lishi xavfsizroq
 
-# STATICFILES_DIRS ni bo'sh qoldiring yoki o'chiring
-STATICFILES_DIRS = [] 
-
+# Whitenoise eng barqaror versiya
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.StaticFilesStorage", # Manifest xatosini bermasligi uchun
     },
 }
 
-WHITENOISE_MANIFEST_STRICT = False  # BU JUDA MUHIM!
-
+WHITENOISE_MANIFEST_STRICT = False
 WHITENOISE_USE_FINDERS = True
-WHITENOISE_AUTOREFRESH = True # Debug rejimida foydali
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Papka yaratish (deployment paytida xato bermasligi uchun)
+# Papka mavjudligini tekshirish
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
+# INTERNATIONALIZATION
+LANGUAGE_CODE = 'uz'
+TIME_ZONE = 'Asia/Tashkent'
+USE_I18N = True
+USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
-else:
-    CORS_ALLOWED_ORIGINS = ["https://*.railway.app"]
-    frontend_url = os.environ.get('FRONTEND_URL')
-    if frontend_url:
-        if not frontend_url.startswith("http"):
-            frontend_url = f"https://{frontend_url}"
-        CORS_ALLOWED_ORIGINS.append(frontend_url)
-    CORS_ALLOW_CREDENTIALS = True
+# CORS
+CORS_ALLOW_ALL_ORIGINS = True # Development va Production uchun osonroq
+CORS_ALLOW_CREDENTIALS = True
 
-# REST Framework
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
+# LOGGING (Agarda 500 xato chiqsa, Railway loglarida sababini ko'rsatadi)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
 }
 
-# Production Security - Faqat DEBUG=False bo'lganda ishlaydi
+# Production Security
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
