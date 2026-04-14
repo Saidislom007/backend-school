@@ -1,27 +1,37 @@
+"""
+Django settings for school_project project - Final Production version for Railway
+"""
+
 import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+# .env faylini yuklash
 load_dotenv()
 
+# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# SECURITY
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-key-123')
+# Railway'da DEBUG har doim False bo'lishi kerak
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
+# Railway domenlarini sozlash
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app']
 railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain:
     ALLOWED_HOSTS.append(railway_domain)
 
+# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', 
+    'whitenoise.runserver_nostatic', # Statik fayllar uchun
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
@@ -30,7 +40,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', 
+    'whitenoise.middleware.WhiteNoiseMiddleware', # SecurityMiddleware dan keyin tursin
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
@@ -60,9 +70,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'school_project.wsgi.application'
 
-# --- FAQAT POSTGRESQL (XATOSIZ VARIANT) ---
-# Agarda DATABASE_URL bo'lmasa (lokalda), bo'sh lug'at qaytarib xato bermasligi uchun 
-# default qiymat sifatida Railway Postgres URL'ni .env'ga qo'yib qo'yishingiz mumkin.
+# Database - Faqat PostgreSQL
 DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL', ''),
@@ -70,8 +78,8 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
-# ------------------------------------------
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -79,24 +87,44 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Internationalization
 LANGUAGE_CODE = 'uz'
 TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
+# Static & Media files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_MANIFEST_STRICT = False 
+
+# Statik fayllar uchun qo'shimcha papkalar bo'lsa
+STATICFILES_DIRS = [
+    # BASE_DIR / "static", # Agar asosiy static papkangiz bo'lsa buni oching
+]
+
+# WhiteNoise sozlamalari - Statik fayllarni siqish va keshdan o'qish uchun
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Papka yaratish (deployment paytida xato bermasligi uchun)
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# CORS settings
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
@@ -108,6 +136,7 @@ else:
         CORS_ALLOWED_ORIGINS.append(frontend_url)
     CORS_ALLOW_CREDENTIALS = True
 
+# REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -118,6 +147,7 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Production Security - Faqat DEBUG=False bo'lganda ishlaydi
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
