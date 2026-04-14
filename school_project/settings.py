@@ -99,6 +99,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# STATICFILES_DIRS ni bo'sh qoldiring yoki o'chiring
+STATICFILES_DIRS = [] 
+
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -107,7 +110,8 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-WHITENOISE_MANIFEST_STRICT = False
+
+WHITENOISE_MANIFEST_STRICT = False  # BU JUDA MUHIM!
 
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True # Debug rejimida foydali
