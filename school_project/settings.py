@@ -94,10 +94,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Statik fayllar uchun qo'shimcha papkalar bo'lsa
-STATICFILES_DIRS = [
-    BASE_DIR / "static", # Agar asosiy static papkangiz bo'lsa buni oching
-]
+
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
