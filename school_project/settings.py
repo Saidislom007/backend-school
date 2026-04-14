@@ -1,51 +1,38 @@
-"""
-Django settings for school_project project - Production version for Railway
-"""
-
 import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
-# .env faylini yuklash
 load_dotenv()
 
-# Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-default-key-change-this')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-key-123')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-# Railway'da domen nomini avtomatik olish uchun
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '.railway.app',  # Railway barcha subdomenlari uchun
-]
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.railway.app']
 railway_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain:
     ALLOWED_HOSTS.append(railway_domain)
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'whitenoise.runserver_nostatic', # Static fayllar uchun
+    'whitenoise.runserver_nostatic', 
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'api',  # Sizning ilovangiz
+    'api', 
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise har doim Security'dan keyin
+    'whitenoise.middleware.WhiteNoiseMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware', # CORS yuqoriroqda bo'lishi kerak
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -73,17 +60,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'school_project.wsgi.application'
 
-# Database - PostgreSQL (Railway uchun)
-# Lokal uchun SQLite ishlatadi, Railway'da esa DATABASE_URL dan oladi
+# --- FAQAT POSTGRESQL (XATOSIZ VARIANT) ---
+# Agarda DATABASE_URL bo'lmasa (lokalda), bo'sh lug'at qaytarib xato bermasligi uchun 
+# default qiymat sifatida Railway Postgres URL'ni .env'ga qo'yib qo'yishingiz mumkin.
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=os.environ.get('DATABASE_URL', ''),
         conn_max_age=600,
         conn_health_checks=True,
     )
 }
+# ------------------------------------------
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -91,49 +79,37 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Internationalization
 LANGUAGE_CODE = 'uz'
 TIME_ZONE = 'Asia/Tashkent'
 USE_I18N = True
 USE_TZ = True
 
-# Static & Media files
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
-# WhiteNoise sozlamalari
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 WHITENOISE_MANIFEST_STRICT = False 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Statik papka bo'lmasa xato bermasligi uchun avtomatik yaratish
 if not os.path.exists(STATIC_ROOT):
     os.makedirs(STATIC_ROOT)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# CORS settings
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOWED_ORIGINS = [
-        "https://*.railway.app",
-    ]
+    CORS_ALLOWED_ORIGINS = ["https://*.railway.app"]
     frontend_url = os.environ.get('FRONTEND_URL')
     if frontend_url:
         if not frontend_url.startswith("http"):
             frontend_url = f"https://{frontend_url}"
         CORS_ALLOWED_ORIGINS.append(frontend_url)
-    
     CORS_ALLOW_CREDENTIALS = True
 
-# REST Framework
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_RENDERER_CLASSES': [
@@ -142,7 +118,6 @@ REST_FRAMEWORK = {
     ],
 }
 
-# Production Security
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
