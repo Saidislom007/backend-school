@@ -4,12 +4,12 @@ FROM python:3.11-slim
 # Muhit o'zgaruvchilari
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-# Railway odatda portni o'zi beradi, lekin 8080 standart hisoblanadi
+# Railway uchun port (Railway avtomat PORT o'zgaruvchisini beradi)
 ENV PORT 8080
 
 WORKDIR /app
 
-# Tizim paketlarini o'rnatish (Postgres uchun libpq-dev shart)
+# Tizim paketlarini o'rnatish
 RUN apt-get update && apt-get install -y \
     build-essential \
     libpq-dev \
@@ -27,8 +27,6 @@ COPY . /app/
 RUN DJANGO_SECRET_KEY=dummy_key_for_collectstatic \
     python manage.py collectstatic --noinput
 
-# Migratsiya, Superuser va Serverni ishga tushirish
-# CMD buyrug'ini bir qatorda yozish Railway uchun qulay
+# Migratsiya va Serverni ishga tushirish (Superuser qismi olib tashlandi)
 CMD python manage.py migrate && \
-    python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'Admin123456!')" && \
     gunicorn school_project.wsgi:application --bind 0.0.0.0:${PORT}
